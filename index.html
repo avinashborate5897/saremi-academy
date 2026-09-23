@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <script>
+      (function(){if(typeof window==='undefined')return;try{var O=window.WebSocket;if(O){window.WebSocket=function(u,p){if(p==='vite-hmr'||(typeof u==='string'&&(u.indexOf('token=')!==-1||u.indexOf('24678')!==-1||u.indexOf('vite')!==-1))){return{readyState:1,send:function(){},close:function(){},addEventListener:function(e,f){if(e==='open')setTimeout(function(){f(new Event('open'));},0);},removeEventListener:function(){},dispatchEvent:function(){return true;}};}return new O(u,p);};window.WebSocket.prototype=O.prototype;}var isV=function(a){for(var i=0;i<a.length;i++){var x=a[i];if(typeof x==='string'&&(x.indexOf('vite')!==-1||x.indexOf('WebSocket')!==-1||x.indexOf('websocket')!==-1))return true;}return false;};['log','info','warn','error','debug'].forEach(function(m){var o=console[m];console[m]=function(){if(isV(arguments))return;o.apply(console,arguments);};});}catch(e){}})();
+    </script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, viewport-fit=cover" />
+    <title>Saremi Academy - Live 1:1 Online Music Conservatory</title>
+    <meta name="description" content="Master Hindustani & Western Vocals, Classical Piano, Guitar, and Tabla through live 1:1 mentorship with conservatory maestros, integrated Riyaaz practice tools, and graded certification." />
+    
+    <!-- PWA & Mobile Web App Meta -->
+    <meta name="theme-color" content="#121829" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="Saremi" />
+    <link rel="manifest" href="/manifest.json" />
+    <link rel="icon" type="image/png" href="/saremi-logo.png" />
+    <link rel="apple-touch-icon" href="/saremi-logo.png" />
+    
+    <!-- Canonical & Social Metadata -->
+    <link rel="canonical" href="https://www.saremiacademy.online/" />
+    <meta property="og:site_name" content="Saremi Academy" />
+    <meta property="og:title" content="Saremi Academy - Live 1:1 Online Music Conservatory" />
+    <meta property="og:description" content="Live 1:1 online music academy for Hindustani & Western Vocals, Piano, Guitar, and Tabla with integrated Riyaaz practice tools and graded diplomas." />
+    <meta property="og:image" content="https://i.postimg.cc/C1tLMWX8/Chat-GPT-Image-Sep-16-2026-01-24-56-AM.png" />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://www.saremiacademy.online/" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Saremi Academy - Live 1:1 Online Music Conservatory" />
+    <meta name="twitter:description" content="Live 1:1 online music academy for Hindustani & Western Vocals, Piano, Guitar, and Tabla with integrated Riyaaz practice studio." />
+    <meta name="twitter:image" content="https://i.postimg.cc/C1tLMWX8/Chat-GPT-Image-Sep-16-2026-01-24-56-AM.png" />
+    
+    <!-- Schema.org EducationalOrganization Structured Data -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "EducationalOrganization",
+      "name": "Saremi Academy",
+      "url": "https://www.saremiacademy.online",
+      "logo": "https://i.postimg.cc/C1tLMWX8/Chat-GPT-Image-Sep-16-2026-01-24-56-AM.png",
+      "description": "Premium live 1:1 online music conservatory offering specialized degree tracks in Hindustani Vocals, Western Classical Piano, Acoustic Guitar, Tabla, Violin, and Bansuri Flute.",
+      "sameAs": [
+        "https://www.youtube.com/@saremiacademy",
+        "https://www.instagram.com/saremiacademy"
+      ],
+      "offers": {
+        "@type": "AggregateOffer",
+        "priceCurrency": "INR",
+        "lowPrice": "1614",
+        "highPrice": "12747",
+        "offerCount": "12"
+      }
+    }
+    </script>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Nunito:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  </head>
+  <body class="bg-saremi-bg text-gray-900 font-sans antialiased selection:bg-saremi-primary/20 selection:text-saremi-primary">
+    <div id="root"></div>
+    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>
+

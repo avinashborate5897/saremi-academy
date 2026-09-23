@@ -1,0 +1,130 @@
+@import "tailwindcss";
+
+@theme {
+  --color-saremi-primary: #6C4BF4;
+  --color-saremi-secondary: #FF5C8A;
+  --color-saremi-yellow: #FFD84D;
+  --color-saremi-blue: #43C6FF;
+  --color-saremi-green: #54D68A;
+  --color-saremi-orange: #FF9B54;
+  
+  --color-saremi-bg: #FFF9F1;
+  --color-saremi-soft-purple: #F0EAFF;
+  --color-saremi-soft-pink: #FFEAF1;
+  --color-saremi-soft-blue: #E9F8FF;
+  --color-saremi-soft-yellow: #FFF6C9;
+
+  --font-sans: 'Nunito', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-serif: 'Fredoka', 'Quicksand', sans-serif;
+}
+
+@layer base {
+  body {
+    font-family: var(--font-sans);
+    color: #1E293B;
+    background-color: var(--color-saremi-bg);
+    overflow-x: hidden;
+  }
+
+  h1, h2, h3, h4, h5, h6, .font-display, .font-serif {
+    font-family: var(--font-serif);
+    letter-spacing: -0.01em;
+  }
+}
+
+/* Custom Musical & Playful Utilities */
+@layer utilities {
+  .shadow-saremi-purple {
+    box-shadow: 0 10px 25px -5px rgba(108, 75, 244, 0.15), 0 8px 10px -6px rgba(108, 75, 244, 0.1);
+  }
+  .shadow-saremi-pink {
+    box-shadow: 0 10px 25px -5px rgba(255, 92, 138, 0.18), 0 8px 10px -6px rgba(255, 92, 138, 0.1);
+  }
+  .shadow-saremi-blue {
+    box-shadow: 0 10px 25px -5px rgba(67, 198, 255, 0.2), 0 8px 10px -6px rgba(67, 198, 255, 0.1);
+  }
+  .shadow-saremi-orange {
+    box-shadow: 0 10px 25px -5px rgba(255, 155, 84, 0.2), 0 8px 10px -6px rgba(255, 155, 84, 0.1);
+  }
+  .shadow-saremi-card {
+    box-shadow: 0 12px 30px -8px rgba(108, 75, 244, 0.08), 0 4px 12px -2px rgba(30, 41, 59, 0.04);
+  }
+  .shadow-saremi-hover {
+    box-shadow: 0 20px 35px -10px rgba(108, 75, 244, 0.18), 0 8px 16px -4px rgba(30, 41, 59, 0.06);
+  }
+}
+
+/* Keyframe animations for sound waves and floaters */
+@keyframes musicFloat {
+  0%, 100% {
+    transform: translateY(0px) rotate(0deg);
+  }
+  50% {
+    transform: translateY(-10px) rotate(4deg);
+  }
+}
+
+@keyframes soundWave {
+  0%, 100% {
+    height: 6px;
+  }
+  50% {
+    height: 28px;
+  }
+}
+
+@keyframes pulseGlow {
+  0%, 100% {
+    opacity: 0.6;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.05);
+  }
+}
+
+.animate-music-float {
+  animation: musicFloat 4s ease-in-out infinite;
+}
+
+.animate-music-float-delayed {
+  animation: musicFloat 4.5s ease-in-out 1.5s infinite;
+}
+
+.animate-sound-wave-1 {
+  animation: soundWave 1.2s ease-in-out infinite;
+}
+
+.animate-sound-wave-2 {
+  animation: soundWave 0.9s ease-in-out 0.2s infinite;
+}
+
+.animate-sound-wave-3 {
+  animation: soundWave 1.4s ease-in-out 0.4s infinite;
+}
+
+.animate-sound-wave-4 {
+  animation: soundWave 1.1s ease-in-out 0.1s infinite;
+}
+
+/* Hide scrollbars but allow scrolling */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* Reduced motion accessibility */
+@media (prefers-reduced-motion: reduce) {
+  *, ::before, ::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+

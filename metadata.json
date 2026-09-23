@@ -1,0 +1,11 @@
+{
+  "name": "Saremi Academy",
+  "description": "Live 1:1 online music academy for vocals, piano, guitar, and tabla with automated scheduling, Agora live studio, and progress tracking.",
+  "requestFramePermissions": [
+    "microphone",
+    "camera"
+  ],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}

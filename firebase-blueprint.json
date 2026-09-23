@@ -1,0 +1,650 @@
+{
+  "entities": {
+    "User": {
+      "title": "User",
+      "description": "User profile with role, contact info, and preferences",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "email": { "type": "string", "format": "email" },
+        "name": { "type": "string", "maxLength": 100 },
+        "role": { "type": "string", "enum": ["student", "parent", "teacher", "academic_coordinator", "sales", "finance", "admin", "super_admin"] },
+        "phone": { "type": "string", "maxLength": 30 },
+        "photoURL": { "type": "string" },
+        "savedAddresses": { "type": "array" },
+        "notificationPreferences": { "type": "object" },
+        "createdAt": { "type": "string" },
+        "updatedAt": { "type": "string" }
+      },
+      "required": ["id", "email", "name", "role", "createdAt"]
+    },
+    "CourseCategory": {
+      "title": "CourseCategory",
+      "description": "Disciplines such as Vocals, Piano, Guitar, Tabla, Kids",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string", "maxLength": 60 },
+        "slug": { "type": "string" },
+        "description": { "type": "string" },
+        "icon": { "type": "string" },
+        "instrument": { "type": "string" },
+        "displayOrder": { "type": "number" }
+      },
+      "required": ["id", "name", "slug"]
+    },
+    "CourseLevel": {
+      "title": "CourseLevel",
+      "description": "Pedagogical skill level such as Foundation, Developing, Proficient, Advanced",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string", "maxLength": 60 },
+        "slug": { "type": "string" },
+        "description": { "type": "string" },
+        "order": { "type": "number" },
+        "prerequisites": { "type": "string" }
+      },
+      "required": ["id", "name", "slug", "order"]
+    },
+    "Module": {
+      "title": "Module",
+      "description": "Pedagogical curriculum module within a course",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "courseId": { "type": "string" },
+        "title": { "type": "string", "maxLength": 120 },
+        "description": { "type": "string" },
+        "order": { "type": "number" },
+        "learningObjectives": { "type": "array" }
+      },
+      "required": ["id", "courseId", "title", "order"]
+    },
+    "Lesson": {
+      "title": "Lesson",
+      "description": "Individual 1:1 lesson or study unit within a module",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "moduleId": { "type": "string" },
+        "courseId": { "type": "string" },
+        "title": { "type": "string", "maxLength": 120 },
+        "summary": { "type": "string" },
+        "order": { "type": "number" },
+        "durationMinutes": { "type": "number" },
+        "practiceFocus": { "type": "string" },
+        "ragasOrPieces": { "type": "array" }
+      },
+      "required": ["id", "moduleId", "courseId", "title", "order"]
+    },
+    "Course": {
+      "title": "Course",
+      "description": "Full conservatory course with curriculum, modules, lessons, and pricing packages",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string", "maxLength": 120 },
+        "slug": { "type": "string" },
+        "description": { "type": "string" },
+        "short_description": { "type": "string", "maxLength": 250 },
+        "image": { "type": "string" },
+        "category": { "type": "string" },
+        "level": { "type": "string" },
+        "age_group": { "type": "string" },
+        "teacher": { "type": "string" },
+        "teacher_id": { "type": "string" },
+        "duration": { "type": "string" },
+        "class_duration": { "type": "number" },
+        "number_of_classes": { "type": "number" },
+        "curriculum": { "type": "array" },
+        "modules": { "type": "array" },
+        "lessons": { "type": "array" },
+        "assignments": { "type": "array" },
+        "assessment": { "type": "string" },
+        "certificate": { "type": "string" },
+        "active_status": { "type": "boolean" },
+        "package_id": { "type": "string" },
+        "featured": { "type": "boolean" },
+        "createdAt": { "type": "string" },
+        "updatedAt": { "type": "string" }
+      },
+      "required": ["id", "name", "slug", "category", "level", "active_status"]
+    },
+    "Teacher": {
+      "title": "Teacher",
+      "description": "Conservatory faculty member profile, qualifications, and specialties",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string", "maxLength": 100 },
+        "photo": { "type": "string" },
+        "bio": { "type": "string" },
+        "specialization": { "type": "string" },
+        "experience": { "type": "number" },
+        "languages": { "type": "array" },
+        "qualifications": { "type": "array" },
+        "courses": { "type": "array" },
+        "availability": { "type": "array" },
+        "intro_video": { "type": "string" },
+        "reviews": { "type": "array" },
+        "rating": { "type": "number" },
+        "email": { "type": "string" },
+        "active": { "type": "boolean" },
+        "createdAt": { "type": "string" }
+      },
+      "required": ["id", "name", "specialization", "rating"]
+    },
+    "TeacherAvailability": {
+      "title": "TeacherAvailability",
+      "description": "Weekly bookable schedule slots for teachers",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "teacherId": { "type": "string" },
+        "dayOfWeek": { "type": "number" },
+        "startTime": { "type": "string" },
+        "endTime": { "type": "string" },
+        "timezone": { "type": "string" },
+        "isBooked": { "type": "boolean" }
+      },
+      "required": ["id", "teacherId", "dayOfWeek", "startTime", "endTime"]
+    },
+    "TeacherBlockedTime": {
+      "title": "TeacherBlockedTime",
+      "description": "Temporary blocked periods overriding teacher weekly availability",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "teacherId": { "type": "string" },
+        "teacherName": { "type": "string" },
+        "date": { "type": "string" },
+        "startTime": { "type": "string" },
+        "endTime": { "type": "string" },
+        "reason": { "type": "string" },
+        "createdAt": { "type": "string" },
+        "createdBy": { "type": "string" }
+      },
+      "required": ["id", "teacherId", "date", "startTime", "endTime", "reason", "createdAt"]
+    },
+    "AcademyBlockedDate": {
+      "title": "AcademyBlockedDate",
+      "description": "Academy holidays, closures, or maintenance blocking session creation",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "date": { "type": "string" },
+        "reason": { "type": "string" },
+        "isFullDay": { "type": "boolean" },
+        "startTime": { "type": "string" },
+        "endTime": { "type": "string" },
+        "createdAt": { "type": "string" },
+        "createdBy": { "type": "string" }
+      },
+      "required": ["id", "date", "reason", "isFullDay", "createdAt"]
+    },
+    "SessionSeries": {
+      "title": "SessionSeries",
+      "description": "Stable recurring session series tracking group of generated sessions",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "seriesId": { "type": "string" },
+        "enrollmentId": { "type": "string" },
+        "studentId": { "type": "string" },
+        "teacherId": { "type": "string" },
+        "courseId": { "type": "string" },
+        "totalSessions": { "type": "number" },
+        "frequency": { "type": "string" },
+        "sessionIds": { "type": "array" },
+        "status": { "type": "string" },
+        "createdAt": { "type": "string" }
+      },
+      "required": ["id", "seriesId", "enrollmentId", "studentId", "teacherId", "totalSessions"]
+    },
+    "Package": {
+      "title": "Package",
+      "description": "Centralized tuition subscription packages and class bundles",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string", "maxLength": 100 },
+        "type": { "type": "string", "enum": ["starter", "foundation", "term", "conservatory"] },
+        "classes_count": { "type": "number" },
+        "duration_weeks": { "type": "number" },
+        "session_duration_minutes": { "type": "number" },
+        "features": { "type": "array" },
+        "price_tier_code": { "type": "string" },
+        "active": { "type": "boolean" }
+      },
+      "required": ["id", "name", "type", "classes_count", "price_tier_code"]
+    },
+    "Lead": {
+      "title": "Lead",
+      "description": "Admissions inquiries and trial booking prospects for CRM pipeline",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "student_name": { "type": "string", "maxLength": 100 },
+        "parent_name": { "type": "string", "maxLength": 100 },
+        "phone": { "type": "string", "maxLength": 30 },
+        "email": { "type": "string", "format": "email" },
+        "age": { "type": "string" },
+        "course": { "type": "string" },
+        "course_id": { "type": "string" },
+        "level": { "type": "string" },
+        "teacher": { "type": "string" },
+        "teacher_id": { "type": "string" },
+        "preferred_date": { "type": "string" },
+        "preferred_time": { "type": "string" },
+        "timezone": { "type": "string" },
+        "learning_goal": { "type": "string" },
+        "status": {
+          "type": "string",
+          "enum": ["New", "Contacted", "Trial Scheduled", "Trial Completed", "Interested", "Enrolled", "Follow-up", "Lost"]
+        },
+        "notes": { "type": "string" },
+        "assigned_to": { "type": "string" },
+        "source": { "type": "string" },
+        "createdAt": { "type": "string" },
+        "updatedAt": { "type": "string" }
+      },
+      "required": ["id", "student_name", "email", "phone", "course", "status", "createdAt"]
+    },
+    "LeadNote": {
+      "title": "LeadNote",
+      "description": "Sales counselor notes and interaction logs on a lead",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "leadId": { "type": "string" },
+        "authorName": { "type": "string" },
+        "authorId": { "type": "string" },
+        "content": { "type": "string" },
+        "createdAt": { "type": "string" }
+      },
+      "required": ["id", "leadId", "authorName", "content", "createdAt"]
+    },
+    "TrialBooking": {
+      "title": "TrialBooking",
+      "description": "Scheduled complimentary 1:1 diagnostic music lessons",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "leadId": { "type": "string" },
+        "studentName": { "type": "string" },
+        "parentName": { "type": "string" },
+        "email": { "type": "string" },
+        "phone": { "type": "string" },
+        "age": { "type": "string" },
+        "courseId": { "type": "string" },
+        "courseName": { "type": "string" },
+        "level": { "type": "string" },
+        "teacherId": { "type": "string" },
+        "teacherName": { "type": "string" },
+        "date": { "type": "string" },
+        "time": { "type": "string" },
+        "timezone": { "type": "string" },
+        "learningGoal": { "type": "string" },
+        "status": { "type": "string", "enum": ["scheduled", "completed", "no_show", "rescheduled", "cancelled"] },
+        "meetingUrl": { "type": "string" },
+        "feedback": { "type": "string" },
+        "createdAt": { "type": "string" }
+      },
+      "required": ["id", "studentName", "email", "courseName", "date", "time", "status", "createdAt"]
+    },
+    "Enrollment": {
+      "title": "Enrollment",
+      "description": "Confirmed student enrollment in a course package with assigned teacher",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "studentId": { "type": "string" },
+        "studentName": { "type": "string" },
+        "studentEmail": { "type": "string" },
+        "studentPhone": { "type": "string" },
+        "courseId": { "type": "string" },
+        "courseName": { "type": "string" },
+        "level": { "type": "string" },
+        "packageId": { "type": "string" },
+        "packageName": { "type": "string" },
+        "teacherId": { "type": "string" },
+        "teacherName": { "type": "string" },
+        "scheduleSummary": { "type": "string" },
+        "classesTotal": { "type": "number" },
+        "classesCompleted": { "type": "number" },
+        "orderId": { "type": "string" },
+        "status": { "type": "string", "enum": ["active", "paused", "graduated", "cancelled"] },
+        "startDate": { "type": "string" },
+        "createdAt": { "type": "string" },
+        "updatedAt": { "type": "string" }
+      },
+      "required": ["id", "studentName", "courseName", "packageId", "status", "createdAt"]
+    },
+    "Product": {
+      "title": "Product",
+      "description": "Physical and digital items for the online music store",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string", "maxLength": 150 },
+        "slug": { "type": "string" },
+        "type": { "type": "string", "enum": ["physical", "digital"] },
+        "category": { "type": "string", "enum": ["accessories", "practice_packs", "course_bundles", "gift_cards"] },
+        "price": { "type": "number" },
+        "currency": { "type": "string" },
+        "description": { "type": "string" },
+        "features": { "type": "array" },
+        "stock": { "type": "number" },
+        "imageUrl": { "type": "string" },
+        "badge": { "type": "string" },
+        "createdAt": { "type": "string" }
+      },
+      "required": ["id", "name", "slug", "type", "category", "price"]
+    },
+    "Order": {
+      "title": "Order",
+      "description": "Customer purchase orders with live status tracking",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "userId": { "type": "string" },
+        "customerEmail": { "type": "string" },
+        "customerName": { "type": "string" },
+        "items": { "type": "array" },
+        "orderType": { "type": "string", "enum": ["physical", "digital", "mixed"] },
+        "subtotal": { "type": "number" },
+        "shippingFee": { "type": "number" },
+        "total": { "type": "number" },
+        "currency": { "type": "string" },
+        "status": { "type": "string", "enum": ["order_placed", "payment_confirmed", "preparing", "shipped", "out_for_delivery", "delivered", "enrolled", "cancelled"] },
+        "statusHistory": { "type": "array" },
+        "shippingAddress": { "type": "object" },
+        "paymentStatus": { "type": "string", "enum": ["unpaid", "paid", "refunded"] },
+        "stripeSessionId": { "type": "string" },
+        "createdAt": { "type": "string" },
+        "updatedAt": { "type": "string" }
+      },
+      "required": ["id", "userId", "customerEmail", "items", "total", "status", "paymentStatus", "createdAt"]
+    },
+    "Payment": {
+      "title": "Payment",
+      "description": "Verified payment transactions with idempotency tracking",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "orderId": { "type": "string" },
+        "studentId": { "type": "string" },
+        "studentName": { "type": "string" },
+        "studentEmail": { "type": "string" },
+        "amount": { "type": "number" },
+        "currency": { "type": "string" },
+        "paymentMethod": { "type": "string" },
+        "status": { "type": "string" },
+        "verifiedAt": { "type": "string" },
+        "createdAt": { "type": "string" },
+        "updatedAt": { "type": "string" }
+      },
+      "required": ["id", "orderId", "amount", "status", "createdAt"]
+    },
+    "Coupon": {
+      "title": "Coupon",
+      "description": "Promotional coupon discounts",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "code": { "type": "string" },
+        "discountType": { "type": "string" },
+        "discountValue": { "type": "number" },
+        "usageLimit": { "type": "number" },
+        "minOrderValue": { "type": "number" }
+      },
+      "required": ["id", "code", "discountType", "discountValue"]
+    },
+    "AuditLog": {
+      "title": "AuditLog",
+      "description": "Immutable administrative audit event trail",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "actorId": { "type": "string" },
+        "actorName": { "type": "string" },
+        "actorRole": { "type": "string" },
+        "action": { "type": "string" },
+        "entityType": { "type": "string" },
+        "details": { "type": "string" },
+        "timestamp": { "type": "string" }
+      },
+      "required": ["id", "actorId", "actorName", "actorRole", "action", "entityType", "details", "timestamp"]
+    },
+    "AcademySettings": {
+      "title": "AcademySettings",
+      "description": "Global institutional parameters and policy controls",
+      "type": "object",
+      "properties": {
+        "academyName": { "type": "string" },
+        "contactEmail": { "type": "string" },
+        "contactPhone": { "type": "string" },
+        "defaultCurrency": { "type": "string" },
+        "taxGstRate": { "type": "number" }
+      },
+      "required": ["academyName", "contactEmail", "contactPhone"]
+    },
+    "CMSContent": {
+      "title": "CMSContent",
+      "description": "Content management system dynamic landing assets",
+      "type": "object",
+      "properties": {
+        "heroHeadline": { "type": "string" },
+        "heroSubheadline": { "type": "string" },
+        "announcementBanner": { "type": "string" },
+        "faqs": { "type": "array" }
+      },
+      "required": ["heroHeadline", "heroSubheadline"]
+    },
+    "Homework": {
+      "title": "Homework",
+      "description": "Post-class assigned music homework, audio demonstration, and notation sheet resources",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "sessionId": { "type": "string" },
+        "enrollmentId": { "type": "string" },
+        "courseId": { "type": "string" },
+        "courseTitle": { "type": "string" },
+        "studentId": { "type": "string" },
+        "studentName": { "type": "string" },
+        "teacherId": { "type": "string" },
+        "teacherName": { "type": "string" },
+        "title": { "type": "string" },
+        "instructions": { "type": "string" },
+        "dueDate": { "type": "string" },
+        "audioUrl": { "type": "string" },
+        "audioTitle": { "type": "string" },
+        "resources": { "type": "array" },
+        "status": { "type": "string", "enum": ["assigned", "in_progress", "submitted", "reviewed", "redo_requested"] },
+        "createdAt": { "type": "string" },
+        "updatedAt": { "type": "string" }
+      },
+      "required": ["id", "sessionId", "studentId", "teacherId", "title", "instructions", "status", "createdAt"]
+    },
+    "PracticeSubmission": {
+      "title": "PracticeSubmission",
+      "description": "Student homework practice upload (audio recording, video link, notes) with teacher feedback and grading",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "homeworkId": { "type": "string" },
+        "sessionId": { "type": "string" },
+        "enrollmentId": { "type": "string" },
+        "studentId": { "type": "string" },
+        "studentName": { "type": "string" },
+        "teacherId": { "type": "string" },
+        "teacherName": { "type": "string" },
+        "audioUrl": { "type": "string" },
+        "videoUrl": { "type": "string" },
+        "notes": { "type": "string" },
+        "status": { "type": "string", "enum": ["SUBMITTED", "UNDER_REVIEW", "REVIEWED", "REDO_REQUESTED"] },
+        "submittedAt": { "type": "string" },
+        "reviewedAt": { "type": "string" },
+        "teacherFeedbackText": { "type": "string" },
+        "teacherFeedbackAudioUrl": { "type": "string" },
+        "teacherGrade": { "type": "string" },
+        "updatedAt": { "type": "string" }
+      },
+      "required": ["id", "homeworkId", "studentId", "teacherId", "status", "submittedAt"]
+    },
+    "ClassMessage": {
+      "title": "ClassMessage",
+      "description": "Direct class-specific messaging between assigned student and teacher",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "sessionId": { "type": "string" },
+        "enrollmentId": { "type": "string" },
+        "studentId": { "type": "string" },
+        "teacherId": { "type": "string" },
+        "senderId": { "type": "string" },
+        "senderRole": { "type": "string", "enum": ["teacher", "student", "admin"] },
+        "senderName": { "type": "string" },
+        "text": { "type": "string" },
+        "attachmentUrl": { "type": "string" },
+        "timestamp": { "type": "string" },
+        "read": { "type": "boolean" }
+      },
+      "required": ["id", "sessionId", "studentId", "teacherId", "senderId", "senderRole", "text", "timestamp"]
+    },
+    "TeacherPrivateNote": {
+      "title": "TeacherPrivateNote",
+      "description": "Confidential teacher observations and pedagogical prep notes strictly hidden from students",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "teacherId": { "type": "string" },
+        "studentId": { "type": "string" },
+        "sessionId": { "type": "string" },
+        "weakAreas": { "type": "string" },
+        "practiceObservations": { "type": "string" },
+        "nextLessonPlan": { "type": "string" },
+        "content": { "type": "string" },
+        "createdAt": { "type": "string" },
+        "updatedAt": { "type": "string" }
+      },
+      "required": ["id", "teacherId", "studentId", "content", "createdAt"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": "User",
+      "description": "User profile records indexed by Firebase Auth UID"
+    },
+    "/courses/{courseId}": {
+      "schema": "Course",
+      "description": "Comprehensive music course registry"
+    },
+    "/course_categories/{categoryId}": {
+      "schema": "CourseCategory",
+      "description": "Course discipline categories"
+    },
+    "/course_levels/{levelId}": {
+      "schema": "CourseLevel",
+      "description": "Course skill and academic levels"
+    },
+    "/modules/{moduleId}": {
+      "schema": "Module",
+      "description": "Curriculum modules for structured learning"
+    },
+    "/lessons/{lessonId}": {
+      "schema": "Lesson",
+      "description": "Detailed lesson units within modules"
+    },
+    "/teachers/{teacherId}": {
+      "schema": "Teacher",
+      "description": "Conservatory faculty directory"
+    },
+    "/teacher_availability/{availId}": {
+      "schema": "TeacherAvailability",
+      "description": "Teacher calendar and bookable availability slots"
+    },
+    "/teacher_blocked_times/{blockId}": {
+      "schema": "TeacherBlockedTime",
+      "description": "Teacher temporary personal and medical blocked windows"
+    },
+    "/academy_blocked_dates/{blockId}": {
+      "schema": "AcademyBlockedDate",
+      "description": "Academy holidays and closure dates"
+    },
+    "/session_series/{seriesId}": {
+      "schema": "SessionSeries",
+      "description": "Recurring session series records"
+    },
+    "/packages/{packageId}": {
+      "schema": "Package",
+      "description": "Centralized tuition subscription packages"
+    },
+    "/saremi_packages/{packageId}": {
+      "schema": "Package",
+      "description": "Tuition subscription packages collection"
+    },
+    "/leads/{leadId}": {
+      "schema": "Lead",
+      "description": "Admissions leads pipeline for sales CRM"
+    },
+    "/lead_notes/{noteId}": {
+      "schema": "LeadNote",
+      "description": "Notes and interaction history for leads"
+    },
+    "/trial_bookings/{bookingId}": {
+      "schema": "TrialBooking",
+      "description": "Scheduled complimentary 1:1 trials"
+    },
+    "/enrollments/{enrollmentId}": {
+      "schema": "Enrollment",
+      "description": "Active and past student course enrollments"
+    },
+    "/products/{productId}": {
+      "schema": "Product",
+      "description": "Public online store inventory"
+    },
+    "/orders/{orderId}": {
+      "schema": "Order",
+      "description": "Customer store and tuition orders"
+    },
+    "/payments/{paymentId}": {
+      "schema": "Payment",
+      "description": "Verified payments and transaction receipts"
+    },
+    "/coupons/{couponId}": {
+      "schema": "Coupon",
+      "description": "Promotional discount codes"
+    },
+    "/audit_logs/{logId}": {
+      "schema": "AuditLog",
+      "description": "System and administrative action audit trail"
+    },
+    "/settings/{settingId}": {
+      "schema": "AcademySettings",
+      "description": "Global institutional settings"
+    },
+    "/cms/{cmsId}": {
+      "schema": "CMSContent",
+      "description": "Landing page CMS dynamic blocks"
+    },
+    "/homework/{homeworkId}": {
+      "schema": "Homework",
+      "description": "Post-class assigned homework and teacher audio instructions"
+    },
+    "/practice_submissions/{submissionId}": {
+      "schema": "PracticeSubmission",
+      "description": "Student homework practice submissions and teacher grading reviews"
+    },
+    "/class_messages/{messageId}": {
+      "schema": "ClassMessage",
+      "description": "Controlled 1:1 class communications between teacher and student"
+    },
+    "/teacher_private_notes/{noteId}": {
+      "schema": "TeacherPrivateNote",
+      "description": "Teacher private notes for students strictly hidden from students"
+    }
+  }
+}

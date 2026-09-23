@@ -1,0 +1,26 @@
+# Saremi Academy Robots.txt
+User-agent: *
+Allow: /
+Allow: /courses
+Allow: /teachers
+Allow: /pricing
+Allow: /free-trial
+Allow: /masterclasses
+Allow: /events
+Allow: /tools
+Allow: /blog
+Allow: /contact
+Allow: /faq
+Allow: /certifications
+Allow: /about
+Allow: /shop
+
+# Disallow private user portals and staff console
+Disallow: /admin
+Disallow: /admin/
+Disallow: /app/
+Disallow: /teacher-app/
+Disallow: /parent-app/
+Disallow: /api/
+
+Sitemap: https://www.saremiacademy.online/sitemap.xml

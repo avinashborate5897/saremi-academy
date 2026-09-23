@@ -1,0 +1,43 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#121829" />
+      <stop offset="100%" stop-color="#1B243B" />
+    </linearGradient>
+    <linearGradient id="brassGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#E5AF55" />
+      <stop offset="50%" stop-color="#D49A3D" />
+      <stop offset="100%" stop-color="#9C6B1C" />
+    </linearGradient>
+  </defs>
+
+  <!-- Base App Tile Background with Rounded Corners -->
+  <rect width="512" height="512" rx="112" fill="url(#bgGrad)" />
+
+  <!-- Subtle Outer Brass Rim -->
+  <rect x="16" y="16" width="480" height="480" rx="96" fill="none" stroke="url(#brassGrad)" stroke-width="4" stroke-opacity="0.3" />
+
+  <!-- Inner Concentric Sound Resonance Circle -->
+  <circle cx="256" cy="256" r="180" fill="none" stroke="url(#brassGrad)" stroke-width="2" stroke-opacity="0.25" stroke-dasharray="8 6" />
+
+  <!-- Musical Lyre / Swara Symbol with Stylized 'S' -->
+  <g transform="translate(136, 120)">
+    <!-- Central Sound Harp / S Shape -->
+    <path d="M120 40 C60 40, 20 80, 20 140 C20 190, 60 220, 120 250 C180 280, 220 310, 220 360 C220 420, 180 460, 120 460 C60 460, 20 420, 20 380"
+          fill="none"
+          stroke="url(#brassGrad)"
+          stroke-width="28"
+          stroke-linecap="round"
+          stroke-linejoin="round" />
+
+    <!-- Harmonic Swara Nodes / Tuning Pins -->
+    <circle cx="120" cy="40" r="18" fill="url(#brassGrad)" />
+    <circle cx="120" cy="250" r="14" fill="#FFFFFF" />
+    <circle cx="20" cy="380" r="16" fill="url(#brassGrad)" />
+
+    <!-- Acoustic Sound Wave Rays -->
+    <line x1="200" y1="90" x2="230" y2="70" stroke="url(#brassGrad)" stroke-width="8" stroke-linecap="round" />
+    <line x1="210" y1="130" x2="245" y2="120" stroke="url(#brassGrad)" stroke-width="8" stroke-linecap="round" />
+    <line x1="200" y1="170" x2="235" y2="175" stroke="url(#brassGrad)" stroke-width="8" stroke-linecap="round" />
+  </g>
+</svg>

@@ -1,0 +1,13 @@
+<!DOCTYPE html>
+<html>
+<body>
+  <script>
+    try {
+      new window.AudioContext();
+      console.log('SUCCESS window.AudioContext');
+    } catch(e) {
+      console.log('ERROR:', e.name, e.message);
+    }
+  </script>
+</body>
+</html>

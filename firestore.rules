@@ -1,0 +1,648 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Auth helpers
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    function getUserData() {
+      return exists(/databases/$(database)/documents/users/$(request.auth.uid))
+        ? get(/databases/$(database)/documents/users/$(request.auth.uid)).data
+        : null;
+    }
+
+    function getUserRole() {
+      return getUserData() != null ? getUserData().role : 'visitor';
+    }
+
+    function isSuperAdmin() {
+      return isAuthenticated() && (
+        ('email' in request.auth.token && request.auth.token.email != null && (
+          request.auth.token.email.lower() == 'avinashborate5897@gmail.com' ||
+          request.auth.token.email.lower() == 'test.admin@test.saremi.academy'
+        )) ||
+        getUserRole() == 'super_admin'
+      );
+    }
+
+    function isAdmin() {
+      return isSuperAdmin() || (
+        isAuthenticated() && (
+          (request.auth.token.keys().hasAny(['admin']) && request.auth.token.admin == true) ||
+          getUserRole() == 'admin' ||
+          getUserRole() == 'academic_coordinator'
+        )
+      );
+    }
+
+    function isTeacher() {
+      return isAdmin() || (isAuthenticated() && (
+        getUserRole() == 'teacher' ||
+        exists(/databases/$(database)/documents/teachers/$(request.auth.uid))
+      ));
+    }
+
+    function isParent() {
+      return isAuthenticated() && (getUserRole() == 'parent' || isAdmin());
+    }
+
+    // User profiles - Strict RBAC: Student/Student and Teacher/Teacher data isolation
+    match /users/{userId} {
+      allow read: if resource == null || isOwner(userId) || isAdmin() || isTeacher() || (resource.data != null && resource.data.role == 'teacher');
+      allow create: if isAuthenticated() && (
+        isAdmin() ||
+        (request.auth.uid == userId && (
+          !('role' in request.resource.data) ||
+          request.resource.data.role in ['student', 'visitor', 'parent'] ||
+          exists(/databases/$(database)/documents/teachers/$(userId))
+        ))
+      );
+      // Disallow non-admins from self-elevating roles, permissions, or modifying sensitive enrollment/demo/teacher/subscription state
+      allow update: if isAdmin() || (
+        isOwner(userId) &&
+        !request.resource.data.diff(resource.data).affectedKeys().hasAny([
+          'isStaff', 'isAdmin', 'super_admin', 'permissions', 'status', 'studentId', 'teacherId',
+          'trialPassed', 'isPurchaseEligible', 'demoStatus', 'trialStatus',
+          'assignedTeacher', 'assignedTeacherId', 'subscriptionStatus', 'enrolledCourses',
+          'activeEnrollmentId', 'paymentStatus', 'enrollmentStatus'
+        ]) &&
+        (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['role']) || request.resource.data.role in ['student', 'visitor', 'parent'] || exists(/databases/$(database)/documents/teachers/$(userId)))
+      );
+      allow delete: if isSuperAdmin();
+    }
+
+    // Courses catalog (Publicly readable, admin editable)
+    match /courses/{courseId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // Course Categories & Levels
+    match /course_categories/{categoryId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    match /course_levels/{levelId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // Curriculum Modules and Lessons
+    match /modules/{moduleId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    match /lessons/{lessonId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // Faculty & Teachers (Publicly readable profile directory)
+    match /teachers/{teacherId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    match /teacher_availability/{availId} {
+      allow read: if true;
+      allow write: if isTeacher() || isAdmin();
+    }
+
+    // Teacher Blocked Times (Temporary blocks)
+    match /teacher_blocked_times/{blockId} {
+      allow read: if isAuthenticated() && (
+        resource.data.teacherId == request.auth.uid ||
+        isAdmin() ||
+        isTeacher()
+      );
+      allow create: if isAuthenticated() && (
+        isAdmin() || (
+          isTeacher() && request.resource.data.teacherId == request.auth.uid
+        )
+      );
+      allow update, delete: if isAuthenticated() && (
+        isAdmin() || (
+          isTeacher() && resource.data.teacherId == request.auth.uid
+        )
+      );
+    }
+
+    // Academy Blocked Dates (Holidays, Maintenance, Closures)
+    match /academy_blocked_dates/{blockId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // Recurring Session Series
+    match /session_series/{seriesId} {
+      allow read: if isAuthenticated() && (
+        resource.data.studentId == request.auth.uid ||
+        resource.data.teacherId == request.auth.uid ||
+        isAdmin()
+      );
+      allow write: if isTeacher() || isAdmin();
+    }
+
+    // Tuition Packages (Publicly readable)
+    match /packages/{packageId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    match /saremi_packages/{packageId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // CRM Leads & Notes
+    match /leads/{leadId} {
+      allow create: if true;
+      allow read, update: if isAdmin() || getUserRole() == 'sales';
+      allow delete: if isAdmin();
+    }
+
+    match /lead_notes/{noteId} {
+      allow read, create, update: if isAdmin() || getUserRole() == 'sales';
+      allow delete: if isAdmin();
+    }
+
+    // Trial Bookings - Public creation and student/teacher/admin slot confirmation
+    match /trial_bookings/{bookingId} {
+      allow create: if true;
+      allow read: if true;
+      allow update: if true;
+      allow delete: if isAdmin();
+    }
+
+    // Bookings & Consultations - Public creation and management
+    match /bookings/{bookingId} {
+      allow create: if true;
+      allow read: if true;
+      allow update: if true;
+      allow delete: if isAdmin();
+    }
+
+    // Student Enrollments - Server-Authoritative: Only Admin / Server SDK may create or modify paid enrollment records
+    match /enrollments/{enrollmentId} {
+      allow read: if (
+        isAuthenticated() && (
+          resource.data.studentId == request.auth.uid ||
+          resource.data.teacherId == request.auth.uid ||
+          resource.data.studentEmail == request.auth.token.email
+        )
+      ) || isAdmin();
+      // Paid enrollments cannot be created or activated directly by the client browser
+      allow create, update, delete: if isAdmin();
+    }
+
+    match /academic_enrollments/{enrollmentId} {
+      allow read: if (
+        isAuthenticated() && (
+          resource.data.studentId == request.auth.uid ||
+          resource.data.teacherId == request.auth.uid ||
+          resource.data.studentEmail == request.auth.token.email
+        )
+      ) || isAdmin();
+      allow create, update, delete: if isAdmin();
+    }
+
+    // Products catalog (Publicly readable, admin editable)
+    match /products/{productId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // Orders (Customer owns their orders, Finance & Admin can manage all)
+    match /orders/{orderId} {
+      allow get: if true;
+      allow list: if isAuthenticated() && (
+        resource.data.userId == request.auth.uid || 
+        isAdmin() || 
+        getUserRole() == 'finance'
+      );
+      allow create: if isAuthenticated() && (
+        request.resource.data.userId == request.auth.uid ||
+        isAdmin()
+      );
+      allow update: if isAdmin() || getUserRole() == 'finance';
+      allow delete: if isSuperAdmin();
+    }
+
+    // Payments (Verified Razorpay & Gateway Transactions)
+    match /payments/{paymentId} {
+      allow read: if isAuthenticated() && (
+        resource.data.studentId == request.auth.uid ||
+        resource.data.userId == request.auth.uid ||
+        resource.data.studentEmail == request.auth.token.email ||
+        isAdmin() || 
+        getUserRole() == 'finance'
+      );
+      allow create: if isAuthenticated() && (
+        request.resource.data.studentId == request.auth.uid ||
+        request.resource.data.userId == request.auth.uid ||
+        request.resource.data.studentEmail == request.auth.token.email ||
+        isAdmin() ||
+        getUserRole() == 'finance'
+      );
+      allow update, delete: if isAdmin() || getUserRole() == 'finance';
+    }
+
+    // Purchases (Customer purchases digital/physical goods)
+    match /purchases/{purchaseId} {
+      allow read: if isAuthenticated() && (
+        resource.data.userId == request.auth.uid ||
+        isAdmin()
+      );
+      allow create: if isAuthenticated() && request.resource.data.userId == request.auth.uid;
+      allow update, delete: if isAdmin();
+    }
+
+    // Live Class Sessions & Timetable - Strict Student/Student and Teacher/Teacher Isolation
+    match /classes/{classId} {
+      allow read: if (
+        resource == null ||
+        (resource.data != null && resource.data.isTrial == true) ||
+        (isAuthenticated() && resource.data != null && (
+          resource.data.studentId == request.auth.uid ||
+          resource.data.studentEmail == request.auth.token.email ||
+          resource.data.teacherId == request.auth.uid ||
+          isAdmin()
+        ))
+      );
+      // Admin, assigned Teacher, student for their class, or free trial provision
+      allow create: if (
+        isAdmin() ||
+        request.resource.data.isTrial == true ||
+        (isAuthenticated() && (
+          (isTeacher() && request.resource.data.teacherId == request.auth.uid) ||
+          request.resource.data.studentId == request.auth.uid
+        ))
+      );
+      // Admin, assigned Teacher, student for their class, or free trial confirmation
+      allow update: if (
+        isAdmin() ||
+        (resource.data != null && resource.data.isTrial == true) ||
+        (isAuthenticated() && resource.data != null && (
+          (isTeacher() && resource.data.teacherId == request.auth.uid) ||
+          resource.data.studentId == request.auth.uid
+        ))
+      );
+      // Hard deletes restricted to Admin only (system prefers status='cancelled')
+      allow delete: if isAdmin();
+    }
+
+    match /live_classes/{classId} {
+      allow read: if (
+        resource == null ||
+        (resource.data != null && resource.data.isTrial == true) ||
+        (isAuthenticated() && resource.data != null && (
+          resource.data.studentId == request.auth.uid ||
+          resource.data.studentEmail == request.auth.token.email ||
+          resource.data.teacherId == request.auth.uid ||
+          isAdmin()
+        ))
+      );
+      allow create: if (
+        isAdmin() ||
+        request.resource.data.isTrial == true ||
+        (isAuthenticated() && (
+          (isTeacher() && request.resource.data.teacherId == request.auth.uid) ||
+          request.resource.data.studentId == request.auth.uid
+        ))
+      );
+      allow update: if (
+        isAdmin() ||
+        (resource.data != null && resource.data.isTrial == true) ||
+        (isAuthenticated() && resource.data != null && (
+          (isTeacher() && resource.data.teacherId == request.auth.uid) ||
+          resource.data.studentId == request.auth.uid
+        ))
+      );
+      allow delete: if isAdmin();
+    }
+
+    // Student Assignments - Isolated to student and assigned teacher
+    match /assignments/{assignmentId} {
+      allow read: if isAuthenticated() && (
+        resource.data.studentId == request.auth.uid ||
+        resource.data.teacherId == request.auth.uid ||
+        isAdmin()
+      );
+      allow create: if isAdmin() || (
+        isTeacher() && request.resource.data.teacherId == request.auth.uid
+      ) || (
+        isAuthenticated() && request.resource.data.studentId == request.auth.uid
+      );
+      allow update: if isAdmin() || (
+        isAuthenticated() && (
+          resource.data.studentId == request.auth.uid ||
+          resource.data.teacherId == request.auth.uid
+        )
+      );
+      allow delete: if isAdmin() || (
+        isTeacher() && resource.data.teacherId == request.auth.uid
+      );
+    }
+
+    // Homework & Audio Demonstration Records
+    match /homework/{homeworkId} {
+      allow read: if isAuthenticated() && (
+        resource.data.studentId == request.auth.uid ||
+        resource.data.teacherId == request.auth.uid ||
+        isAdmin()
+      );
+      allow create: if isAdmin() || (
+        isTeacher() && request.resource.data.teacherId == request.auth.uid
+      );
+      allow update: if isAdmin() || (
+        isAuthenticated() && (
+          (isTeacher() && resource.data.teacherId == request.auth.uid) ||
+          (resource.data.studentId == request.auth.uid && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status', 'updatedAt']))
+        )
+      );
+      allow delete: if isAdmin() || (
+        isTeacher() && resource.data.teacherId == request.auth.uid
+      );
+    }
+
+    // Student Practice Submissions (Student uploads practice audio/video/notes, teacher reviews)
+    match /practice_submissions/{submissionId} {
+      allow read: if isAuthenticated() && (
+        resource.data.studentId == request.auth.uid ||
+        resource.data.teacherId == request.auth.uid ||
+        isAdmin()
+      );
+      allow create: if isAuthenticated() && (
+        request.resource.data.studentId == request.auth.uid ||
+        isAdmin()
+      );
+      allow update: if isAuthenticated() && (
+        isAdmin() ||
+        (resource.data.studentId == request.auth.uid) ||
+        (isTeacher() && resource.data.teacherId == request.auth.uid)
+      );
+      allow delete: if isAdmin();
+    }
+
+    // Class-Specific Controlled Chat (Teacher ↔ Assigned Student only)
+    match /class_messages/{messageId} {
+      allow read: if isAuthenticated() && (
+        resource.data.studentId == request.auth.uid ||
+        resource.data.teacherId == request.auth.uid ||
+        isAdmin()
+      );
+      allow create: if isAuthenticated() && (
+        isAdmin() || (
+          request.resource.data.senderId == request.auth.uid && (
+            request.resource.data.studentId == request.auth.uid ||
+            request.resource.data.teacherId == request.auth.uid
+          )
+        )
+      );
+      allow update: if isAuthenticated() && (
+        isAdmin() || (
+          (resource.data.studentId == request.auth.uid || resource.data.teacherId == request.auth.uid) &&
+          request.resource.data.diff(resource.data).affectedKeys().hasOnly(['read'])
+        )
+      );
+      allow delete: if isAdmin();
+    }
+
+    // Teacher Private Notes (STRICT: Never accessible to student, only creating teacher or admin)
+    match /teacher_private_notes/{noteId} {
+      allow read: if isAuthenticated() && (
+        isAdmin() ||
+        (isTeacher() && resource.data.teacherId == request.auth.uid)
+      );
+      allow create: if isAuthenticated() && (
+        isAdmin() ||
+        (isTeacher() && request.resource.data.teacherId == request.auth.uid)
+      );
+      allow update, delete: if isAuthenticated() && (
+        isAdmin() ||
+        (isTeacher() && resource.data.teacherId == request.auth.uid)
+      );
+    }
+
+    // Student Practice Logs - Isolated to student and admin
+    match /practices/{practiceId} {
+      allow read: if isAuthenticated() && (
+        resource.data.studentId == request.auth.uid ||
+        (resource.data.keys().hasAny(['teacherId']) && resource.data.teacherId == request.auth.uid) ||
+        isAdmin()
+      );
+      allow create: if isAuthenticated() && request.resource.data.studentId == request.auth.uid;
+      allow update: if isAuthenticated() && (
+        resource.data.studentId == request.auth.uid ||
+        isAdmin()
+      );
+      allow delete: if isAuthenticated() && (
+        resource.data.studentId == request.auth.uid ||
+        isAdmin()
+      );
+    }
+
+    // Attendance Records - Student, Teacher, Admin Isolation
+    match /attendance/{attendanceId} {
+      allow read: if isAuthenticated() && (
+        resource.data.studentId == request.auth.uid ||
+        resource.data.teacherId == request.auth.uid ||
+        isAdmin()
+      );
+      allow create, update: if isAdmin() || (
+        isTeacher() && request.resource.data.teacherId == request.auth.uid
+      );
+      allow delete: if isAdmin();
+    }
+
+    match /attendance_records/{recordId} {
+      allow read: if isAuthenticated() && (
+        resource.data.studentId == request.auth.uid ||
+        resource.data.teacherId == request.auth.uid ||
+        isAdmin()
+      );
+      allow create, update: if isAdmin() || (
+        isTeacher() && request.resource.data.teacherId == request.auth.uid
+      );
+      allow delete: if isAdmin();
+    }
+
+    // Trial Assessments
+    match /trial_assessments/{assessmentId} {
+      allow read: if isAuthenticated() && (
+        resource.data.studentId == request.auth.uid ||
+        resource.data.teacherId == request.auth.uid ||
+        isAdmin()
+      );
+      allow create, update: if isAdmin() || (
+        isTeacher() && request.resource.data.teacherId == request.auth.uid
+      );
+      allow delete: if isAdmin();
+    }
+
+    // Achievements
+    match /achievements/{achievementId} {
+      allow read: if isAuthenticated() && (
+        resource.data.studentId == request.auth.uid ||
+        resource.data.teacherId == request.auth.uid ||
+        isAdmin()
+      );
+      allow create, update: if isAdmin() || (
+        isTeacher() && request.resource.data.teacherId == request.auth.uid
+      ) || (
+        isAuthenticated() && request.resource.data.studentId == request.auth.uid
+      );
+      allow delete: if isAdmin();
+    }
+
+    // Masterclasses (Publicly readable, admin editable)
+    match /masterclasses/{masterclassId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // Student Submissions / Showcase
+    match /submissions/{submissionId} {
+      allow read: if true;
+      allow create: if isAuthenticated() && request.resource.data.studentId == request.auth.uid;
+      allow update: if isAuthenticated() && (
+        resource.data.studentId == request.auth.uid ||
+        isAdmin()
+      );
+      allow delete: if isAdmin() || (
+        isAuthenticated() && resource.data.studentId == request.auth.uid
+      );
+    }
+
+    // Certificates (Publicly verifiable, admin issued)
+    match /certificates/{certificateId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // Secure Messaging - Sender and receiver isolation
+    match /messages/{messageId} {
+      allow read: if isAuthenticated() && (
+        resource.data.senderId == request.auth.uid ||
+        resource.data.receiverId == request.auth.uid ||
+        resource.data.recipientId == request.auth.uid ||
+        isAdmin()
+      );
+      allow create: if isAuthenticated() && (
+        request.resource.data.senderId == request.auth.uid ||
+        request.resource.data.userId == request.auth.uid
+      );
+      allow update, delete: if isAdmin();
+    }
+
+    // Notifications - Role-based User isolation & Admin access
+    match /notifications/{notificationId} {
+      allow read: if isAuthenticated() && (
+        resource.data.userId == request.auth.uid ||
+        isAdmin() ||
+        (resource.data.userId == 'admin' && isAdmin()) ||
+        (resource.data.recipientRole == 'admin' && isAdmin())
+      );
+      allow create: if true; // Allows demo booking and client notification creation with server-side validation
+      allow update: if isAuthenticated() && (
+        resource.data.userId == request.auth.uid ||
+        isAdmin() ||
+        (resource.data.userId == 'admin' && isAdmin())
+      );
+      allow delete: if isAdmin();
+    }
+
+    // Support Tickets - User and Admin Isolation
+    match /support_tickets/{ticketId} {
+      allow read: if isAuthenticated() && (
+        resource.data.userId == request.auth.uid ||
+        resource.data.studentId == request.auth.uid ||
+        isAdmin()
+      );
+      allow create: if isAuthenticated() && (
+        request.resource.data.userId == request.auth.uid ||
+        request.resource.data.studentId == request.auth.uid
+      );
+      allow update: if isAdmin() || (
+        isAuthenticated() && resource.data.userId == request.auth.uid
+      );
+      allow delete: if isAdmin();
+    }
+
+    // Family Connections
+    match /family_connections/{connectionId} {
+      allow read: if isAuthenticated() && (
+        resource.data.parentId == request.auth.uid ||
+        resource.data.studentId == request.auth.uid ||
+        isAdmin()
+      );
+      allow write: if isAdmin();
+    }
+
+    // Admin & Operations Portal Rules
+    match /admin_staff/{staffId} {
+      allow read, write: if isAdmin();
+    }
+
+    match /settings/{settingId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    match /cms/{cmsId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    match /coupons/{couponId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    match /audit_logs/{logId} {
+      allow read: if isAdmin();
+      allow create: if isAuthenticated();
+      allow update, delete: if isSuperAdmin();
+    }
+
+    match /refunds/{refundId} {
+      allow read: if isAdmin() || getUserRole() == 'finance';
+      allow write: if isAdmin() || getUserRole() == 'finance';
+    }
+
+    // Transactions & Invoices
+    match /transactions/{txId} {
+      allow read: if (
+        isAuthenticated() && resource.data.studentId == request.auth.uid
+      ) || isAdmin() || getUserRole() == 'finance';
+      allow create: if (
+        isAuthenticated() && request.resource.data.studentId == request.auth.uid
+      ) || isAdmin() || getUserRole() == 'finance';
+      allow update, delete: if isAdmin();
+    }
+
+    match /invoices/{invoiceId} {
+      allow read: if (
+        isAuthenticated() && resource.data.studentId == request.auth.uid
+      ) || isAdmin() || getUserRole() == 'finance';
+      allow create: if (
+        isAuthenticated() && request.resource.data.studentId == request.auth.uid
+      ) || isAdmin() || getUserRole() == 'finance';
+      allow update, delete: if isAdmin() || getUserRole() == 'finance';
+    }
+
+    // Connection test doc
+    match /test/{docId} {
+      allow read: if true;
+    }
+  }
+}
