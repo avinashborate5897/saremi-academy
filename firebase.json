@@ -9,7 +9,10 @@
     "rewrites": [
       {
         "source": "**",
-        "destination": "/index.html"
+        "run": {
+          "serviceId": "remix-remix-saremi-academy",
+          "region": "us-west2"
+        }
       }
     ]
   },
